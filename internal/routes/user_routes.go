@@ -12,7 +12,7 @@ type UserRoutes struct {
 
 func NewUserRoutes(handler *handler.UserHandler) *UserRoutes {
 	return &UserRoutes{
-		handler,
+		handler: handler,
 	}
 }
 

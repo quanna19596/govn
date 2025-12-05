@@ -74,6 +74,10 @@ func HandleValidationErrors(err error) gin.H {
 				errors[fieldPath] = fmt.Sprintf("%s chỉ được chứa chữ thường, in hoa, số và khoảng trắng", fieldPath)
 			case "email":
 				errors[fieldPath] = fmt.Sprintf("%s phải đúng định dạng là email", fieldPath)
+			case "email_advanced":
+				errors[fieldPath] = fmt.Sprintf("%s bị cấm", fieldPath)
+			case "password_string":
+				errors[fieldPath] = fmt.Sprintf("%s phải có ít nhất 8 ký tự", fieldPath)
 			case "datetime":
 				errors[fieldPath] = fmt.Sprintf("%s phải theo đúng định dạng YYYY-MM-DD", fieldPath)
 			case "file_ext":
@@ -86,5 +90,5 @@ func HandleValidationErrors(err error) gin.H {
 
 	}
 
-	return gin.H{"error": "Yêu cầu không hợp lệ" + err.Error()}
+	return gin.H{"error": "Yêu cầu không hợp lệ ", "detail": err.Error()}
 }

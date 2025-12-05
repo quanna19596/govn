@@ -17,7 +17,7 @@ func NewUserModule() *UserModule {
 	handler := handler.NewUserHandler(service)
 	routes := routes.NewUserRoutes(handler)
 
-	return &UserModule{routes}
+	return &UserModule{routes: routes}
 }
 
 func (um *UserModule) Routes() routes.Route {

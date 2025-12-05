@@ -35,9 +35,9 @@ func NewApplication(config *config.Config) *Application {
 	routes.RegisterRoutes(router, getModuleRoutes(modules)...)
 
 	return &Application{
-		config,
-		router,
-		modules,
+		config:  config,
+		router:  router,
+		modules: modules,
 	}
 }
 
