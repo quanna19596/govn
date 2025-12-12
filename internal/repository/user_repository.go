@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"log"
+	"fmt"
+	"slices"
 	"user-management-api/internal/models"
 )
 
@@ -15,20 +16,46 @@ func NewInMemoryUserRepository() UserRepository {
 	}
 }
 
-func (ur *InMemoryUserRepository) FindAll() {
-	log.Println("GetAllUsers repo")
+func (ur *InMemoryUserRepository) FindAll() ([]models.User, error) {
+	return ur.users, nil
 }
 
-func (ur *InMemoryUserRepository) FindByUUID() {}
+func (ur *InMemoryUserRepository) FindByUUID(uuid string) (models.User, bool) {
+	for _, user := range ur.users {
+		if user.UUID == uuid {
+			return user, true
+		}
+	}
+
+	return models.User{}, false
+}
 
 func (ur *InMemoryUserRepository) Create(user models.User) error {
 	ur.users = append(ur.users, user)
 	return nil
 }
 
-func (ur *InMemoryUserRepository) Update() {}
+func (ur *InMemoryUserRepository) Update(uuid string, user models.User) error {
+	for i, u := range ur.users {
+		if u.UUID == user.UUID {
+			ur.users[i] = user
+			return nil
+		}
+	}
 
-func (ur *InMemoryUserRepository) Delete() {}
+	return fmt.Errorf("user not found")
+}
+
+func (ur *InMemoryUserRepository) Delete(uuid string) error {
+	for i, u := range ur.users {
+		if u.UUID == uuid {
+			ur.users = slices.Delete(ur.users, i, i+1)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("user not found")
+}
 
 func (ur *InMemoryUserRepository) FindByEmail(email string) (models.User, bool) {
 	for _, user := range ur.users {

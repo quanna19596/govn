@@ -3,10 +3,10 @@ package repository
 import "user-management-api/internal/models"
 
 type UserRepository interface {
-	FindAll()
-	FindByUUID()
+	FindAll() ([]models.User, error)
+	FindByUUID(uuid string) (models.User, bool)
 	Create(user models.User) error
-	Update()
-	Delete()
+	Update(uuid string, user models.User) error
+	Delete(uuid string) error
 	FindByEmail(email string) (models.User, bool)
 }
