@@ -25,8 +25,6 @@ func ApiKeyMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("username", "quoctuan")
-
 		ctx.Next()
 	}
 }

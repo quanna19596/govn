@@ -1,6 +1,4 @@
-package dto
-
-import "user-management-api/internal/models"
+package v1dto
 
 type UserDTO struct {
 	UUID   string `json:"uuid"`
@@ -29,48 +27,9 @@ type UpdateUserInput struct {
 	Level    int    `json:"level" binding:"required,oneof=1 2"`
 }
 
-func (input *CreateUserInput) MapCreateInputToModel() models.User {
-	return models.User{
-		Name:     input.Name,
-		Email:    input.Email,
-		Age:      input.Age,
-		Password: input.Password,
-		Status:   input.Status,
-		Level:    input.Level,
-	}
-}
+func (input *CreateUserInput) MapCreateInputToModel() {}
 
-func (input *UpdateUserInput) MapUpdateInputToModel() models.User {
-	return models.User{
-		Name:     input.Name,
-		Email:    input.Email,
-		Age:      input.Age,
-		Password: input.Password,
-		Status:   input.Status,
-		Level:    input.Level,
-	}
-}
-
-func MapUserToDTO(user models.User) *UserDTO {
-	return &UserDTO{
-		UUID:   user.UUID,
-		Name:   user.Name,
-		Email:  user.Email,
-		Age:    user.Age,
-		Status: mapStatusText(user.Status),
-		Level:  mapLevelText(user.Level),
-	}
-}
-
-func MapUsersToDTO(users []models.User) []UserDTO {
-	dtos := make([]UserDTO, 0, len(users))
-
-	for _, user := range users {
-		dtos = append(dtos, *MapUserToDTO(user))
-	}
-
-	return dtos
-}
+func (input *UpdateUserInput) MapUpdateInputToModel() {}
 
 func mapStatusText(status int) string {
 	switch status {

@@ -2,8 +2,8 @@ package validation
 
 import (
 	"fmt"
+	"shopify/internal/utils"
 	"strings"
-	"user-management-api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

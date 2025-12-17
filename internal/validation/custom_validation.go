@@ -3,9 +3,9 @@ package validation
 import (
 	"path/filepath"
 	"regexp"
+	"shopify/internal/utils"
 	"strconv"
 	"strings"
-	"user-management-api/internal/utils"
 
 	"github.com/go-playground/validator/v10"
 )

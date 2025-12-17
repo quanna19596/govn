@@ -1,16 +1,16 @@
-package routes
+package v1routes
 
 import (
-	"user-management-api/internal/handler"
+	v1handler "shopify/internal/handler/v1"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserRoutes struct {
-	handler *handler.UserHandler
+	handler *v1handler.UserHandler
 }
 
-func NewUserRoutes(handler *handler.UserHandler) *UserRoutes {
+func NewUserRoutes(handler *v1handler.UserHandler) *UserRoutes {
 	return &UserRoutes{
 		handler: handler,
 	}

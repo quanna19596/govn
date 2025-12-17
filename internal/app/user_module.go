@@ -1,10 +1,11 @@
 package app
 
 import (
-	"user-management-api/internal/handler"
-	"user-management-api/internal/repository"
-	"user-management-api/internal/routes"
-	"user-management-api/internal/service"
+	v1handler "shopify/internal/handler/v1"
+	"shopify/internal/repository"
+	"shopify/internal/routes"
+	v1routes "shopify/internal/routes/v1"
+	v1service "shopify/internal/service/v1"
 )
 
 type UserModule struct {
@@ -12,10 +13,10 @@ type UserModule struct {
 }
 
 func NewUserModule() *UserModule {
-	repo := repository.NewInMemoryUserRepository()
-	service := service.NewUserService(repo)
-	handler := handler.NewUserHandler(service)
-	routes := routes.NewUserRoutes(handler)
+	repo := repository.NewSqlUserRepository()
+	service := v1service.NewUserService(repo)
+	handler := v1handler.NewUserHandler(service)
+	routes := v1routes.NewUserRoutes(handler)
 
 	return &UserModule{routes: routes}
 }

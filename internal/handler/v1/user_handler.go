@@ -1,20 +1,20 @@
-package handler
+package v1handler
 
 import (
 	"net/http"
-	"user-management-api/internal/dto"
-	"user-management-api/internal/service"
-	"user-management-api/internal/utils"
-	"user-management-api/internal/validation"
+	v1dto "shopify/internal/dto/v1"
+	v1service "shopify/internal/service/v1"
+	"shopify/internal/utils"
+	"shopify/internal/validation"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	service service.UserService
+	service v1service.UserService
 }
 
-func NewUserHandler(service service.UserService) *UserHandler {
+func NewUserHandler(service v1service.UserService) *UserHandler {
 	return &UserHandler{
 		service: service,
 	}
@@ -45,15 +45,7 @@ func (uh *UserHandler) GetAllUsers(ctx *gin.Context) {
 		params.Limit = 10
 	}
 
-	users, err := uh.service.GetAllUsers(params.Search, params.Page, params.Limit)
-	if err != nil {
-		utils.ResponseError(ctx, err)
-		return
-	}
-
-	usersDTO := dto.MapUsersToDTO(users)
-
-	utils.ResponseSuccess(ctx, http.StatusOK, usersDTO)
+	utils.ResponseSuccess(ctx, http.StatusOK, "")
 }
 
 func (uh *UserHandler) GetUserByUUID(ctx *gin.Context) {
@@ -63,37 +55,17 @@ func (uh *UserHandler) GetUserByUUID(ctx *gin.Context) {
 		return
 	}
 
-	user, err := uh.service.GetUserByUUID(params.Uuid)
-
-	if err != nil {
-		utils.ResponseError(ctx, err)
-		return
-	}
-
-	userDTO := dto.MapUserToDTO(user)
-
-	utils.ResponseSuccess(ctx, http.StatusCreated, userDTO)
+	utils.ResponseSuccess(ctx, http.StatusOK, "")
 }
 
 func (uh *UserHandler) CreateUser(ctx *gin.Context) {
-	var input dto.CreateUserInput
+	var input v1dto.CreateUserInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
 		return
 	}
 
-	user := input.MapCreateInputToModel()
-
-	createdUser, err := uh.service.CreateUser(user)
-
-	if err != nil {
-		utils.ResponseError(ctx, err)
-		return
-	}
-
-	userDTO := dto.MapUserToDTO(createdUser)
-
-	utils.ResponseSuccess(ctx, http.StatusCreated, userDTO)
+	utils.ResponseSuccess(ctx, http.StatusCreated, "")
 }
 
 func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
@@ -103,37 +75,19 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var input dto.UpdateUserInput
+	var input v1dto.UpdateUserInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
 		return
 	}
 
-	user := input.MapUpdateInputToModel()
-
-	updatedUser, err := uh.service.UpdateUser(params.Uuid, user)
-
-	if err != nil {
-		utils.ResponseError(ctx, err)
-		return
-	}
-
-	userDTO := dto.MapUserToDTO(updatedUser)
-
-	utils.ResponseSuccess(ctx, http.StatusOK, userDTO)
+	utils.ResponseSuccess(ctx, http.StatusOK, "")
 }
 
 func (uh *UserHandler) DeleteUser(ctx *gin.Context) {
 	var params GetUserByUUIDParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
-		return
-	}
-
-	err := uh.service.DeleteUser(params.Uuid)
-
-	if err != nil {
-		utils.ResponseError(ctx, err)
 		return
 	}
 

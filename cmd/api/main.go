@@ -1,8 +1,8 @@
 package main
 
 import (
-	"user-management-api/internal/app"
-	"user-management-api/internal/config"
+	"shopify/internal/app"
+	"shopify/internal/config"
 )
 
 func main() {
