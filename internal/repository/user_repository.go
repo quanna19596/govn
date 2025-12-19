@@ -1,16 +1,32 @@
 package repository
 
-type SqlUserRepository struct{}
+import (
+	"context"
+	"shopify/internal/db/sqlc"
+)
 
-func NewSqlUserRepository() UserRepository {
-	return &SqlUserRepository{}
+type SqlUserRepository struct {
+	DB sqlc.Querier
+}
+
+func NewSqlUserRepository(DB sqlc.Querier) UserRepository {
+	return &SqlUserRepository{
+		DB: DB,
+	}
 }
 
 func (ur *SqlUserRepository) FindAll() {}
 
 func (ur *SqlUserRepository) FindByUUID(uuid string) {}
 
-func (ur *SqlUserRepository) Create() {}
+func (ur *SqlUserRepository) Create(ctx context.Context, userParams sqlc.CreateUserParams) (sqlc.User, error) {
+	user, err := ur.DB.CreateUser(ctx, userParams)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+
+	return user, nil
+}
 
 func (ur *SqlUserRepository) Update(uuid string) {}
 

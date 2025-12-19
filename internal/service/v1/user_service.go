@@ -1,7 +1,14 @@
 package v1service
 
 import (
+	"errors"
+	"shopify/internal/db/sqlc"
 	"shopify/internal/repository"
+	"shopify/internal/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
@@ -18,7 +25,31 @@ func (us *userService) GetAllUsers(search string, page int, limit int) {}
 
 func (us *userService) GetUserByUUID(uuid string) {}
 
-func (us *userService) CreateUser() {}
+func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
+	context := ctx.Request.Context()
+
+	input.UserEmail = utils.NormalizeString(input.UserEmail)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.UserPassword), bcrypt.DefaultCost)
+
+	if err != nil {
+		return sqlc.User{}, utils.WrapError(err, "failed to hash password", utils.ErrCodeInternalServer)
+	}
+
+	input.UserPassword = string(hashedPassword)
+
+	user, err := us.repo.Create(context, input)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return sqlc.User{}, utils.NewError("email already exist", utils.ErrCodeConflict)
+		}
+
+		return sqlc.User{}, utils.WrapError(err, "failed to create new user", utils.ErrCodeInternalServer)
+	}
+
+	return user, nil
+}
 
 func (us *userService) UpdateUser(uuid string) {}
 

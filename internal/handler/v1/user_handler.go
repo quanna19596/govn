@@ -65,7 +65,18 @@ func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusCreated, "")
+	user := input.MapCreateInputToModel()
+
+	createdUser, err := uh.service.CreateUser(ctx, user)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	userDTO := v1dto.MapUserToDTO(createdUser)
+
+	utils.ResponseSuccess(ctx, http.StatusCreated, userDTO)
 }
 
 func (uh *UserHandler) UpdateUser(ctx *gin.Context) {

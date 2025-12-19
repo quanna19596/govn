@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 	"shopify/internal/config"
+	"shopify/internal/db"
+	"shopify/internal/db/sqlc"
 	"shopify/internal/routes"
 	"shopify/internal/validation"
 	"syscall"
@@ -26,6 +28,10 @@ type Application struct {
 	modules []Module
 }
 
+type ModuleContext struct {
+	DB sqlc.Querier
+}
+
 func NewApplication(config *config.Config) *Application {
 	if err := validation.InitValidator(); err != nil {
 		log.Fatalf("Validator init failed %v", err)
@@ -34,8 +40,16 @@ func NewApplication(config *config.Config) *Application {
 
 	router := gin.Default()
 
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("Database init failed: %v", err)
+	}
+
+	ctx := &ModuleContext{
+		DB: db.DB,
+	}
+
 	modules := []Module{
-		NewUserModule(),
+		NewUserModule(ctx),
 	}
 
 	routes.RegisterRoutes(router, getModuleRoutes(modules)...)
