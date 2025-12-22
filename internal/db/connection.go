@@ -6,9 +6,12 @@ import (
 	"log"
 	"shopify/internal/config"
 	"shopify/internal/db/sqlc"
+	"shopify/internal/utils"
+	"shopify/pkg/pgx"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 )
 
 var DB sqlc.Querier
@@ -19,6 +22,16 @@ func InitDB() error {
 	conf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return fmt.Errorf("error parsing DB config: %v", err)
+	}
+
+	sqlLogger := utils.NewLoggerWithPath("../../internal/logs/sql.log", "info")
+
+	conf.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger: &pgx.PgxZerologTracer{
+			Logger:         *sqlLogger,
+			SlowQueryLimit: 500 * time.Millisecond,
+		},
+		LogLevel: tracelog.LogLevelDebug,
 	}
 
 	conf.MaxConns = 50

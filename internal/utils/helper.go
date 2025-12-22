@@ -2,7 +2,10 @@ package utils
 
 import (
 	"os"
+	"shopify/pkg/logger"
 	"strconv"
+
+	"github.com/rs/zerolog"
 )
 
 func GetEnv(key, defaultValue string) string {
@@ -25,4 +28,18 @@ func GetIntEnv(key string, defaultValue int) int {
 	}
 
 	return intVal
+}
+
+func NewLoggerWithPath(path string, level string) *zerolog.Logger {
+	config := logger.LoggerConfig{
+		Level:       level,
+		Filename:    path,
+		MaxSize:     1, // megabytes
+		MaxBackups:  5,
+		MaxAge:      5, //days
+		Compress:    true,
+		Environment: GetEnv("APP_ENVIRONMENT", "development"),
+	}
+
+	return logger.NewLogger(config)
 }
