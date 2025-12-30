@@ -21,6 +21,12 @@ type AppError struct {
 	Err     error
 }
 
+type APIResponse struct {
+	Status     string `json:"status"`
+	Data       any    `json:"data,omitempty"`
+	Pagination any    `json:"pagination,omitempty"`
+}
+
 func (ae *AppError) Error() string {
 	return ""
 }
@@ -37,11 +43,28 @@ func WrapError(err error, message string, code ErrorCode) error {
 	}
 }
 
-func ResponseSuccess(ctx *gin.Context, status int, data any) {
-	ctx.JSON(status, gin.H{
-		"status": "success",
-		"data":   data,
-	})
+func ResponseSuccess(ctx *gin.Context, status int, data ...any) {
+	resp := APIResponse{
+		Status: "success",
+	}
+
+	if len(data) > 0 && data[0] != nil {
+		if m, ok := data[0].(map[string]any); ok {
+			if p, exists := m["pagination"]; exists {
+				resp.Pagination = p
+			}
+
+			if d, exists := m["data"]; exists {
+				resp.Data = d
+			} else {
+				resp.Data = m
+			}
+		} else {
+			resp.Data = data[0]
+		}
+	}
+
+	ctx.JSON(status, resp)
 }
 
 func ResponseStatusCode(ctx *gin.Context, status int) {
