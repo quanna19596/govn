@@ -19,8 +19,12 @@ func NewSqlUserRepository(DB sqlc.Querier) UserRepository {
 	}
 }
 
-func (ur *SqlUserRepository) CountUsers(ctx context.Context, search string) (int64, error) {
-	total, err := ur.DB.CountUsers(ctx, search)
+func (ur *SqlUserRepository) CountUsers(ctx context.Context, search string, deleted bool) (int64, error) {
+	total, err := ur.DB.CountUsers(ctx, sqlc.CountUsersParams{
+		Search:  search,
+		Deleted: &deleted,
+	})
+
 	if err != nil {
 		return 0, err
 	}
@@ -70,17 +74,22 @@ func (ur *SqlUserRepository) GetAll(ctx context.Context, search string, orderBy 
 	return users, nil
 }
 
-func (ur *SqlUserRepository) GetAllV2(ctx context.Context, search string, orderBy string, sort string, limit int32, offset int32) ([]sqlc.User, error) {
+func (ur *SqlUserRepository) GetAllV2(ctx context.Context, search string, orderBy string, sort string, limit int32, offset int32, deleted bool) ([]sqlc.User, error) {
 	query := `SELECT *
 		FROM users
-		WHERE user_deleted_at IS NULL
-		AND (
+		WHERE (
 			$1::TEXT IS NULL
 			OR $1::TEXT = ''
 			OR user_email ILIKE '%' || $1 || '%'
 			OR user_fullname ILIKE '%' || $1 || '%'
 		)
 	`
+
+	if deleted {
+		query += " AND user_deleted_at IS NOT NULL"
+	} else {
+		query += " AND user_deleted_at IS NULL"
+	}
 
 	order := "ASC"
 	if sort == "desc" {
@@ -128,7 +137,14 @@ func (ur *SqlUserRepository) GetAllV2(ctx context.Context, search string, orderB
 	return users, nil
 }
 
-func (ur *SqlUserRepository) FindByUUID(uuid string) {}
+func (ur *SqlUserRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (sqlc.User, error) {
+	user, err := ur.DB.GetUser(ctx, uuid)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+
+	return user, nil
+}
 
 func (ur *SqlUserRepository) Create(ctx context.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
 	user, err := ur.DB.CreateUser(ctx, input)

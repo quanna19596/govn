@@ -28,7 +28,7 @@ func (uh *UserHandler) GetAllUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, total, err := uh.service.GetAllUsers(ctx, params.Search, params.OrderBy, params.Sort, params.Page, params.Limit)
+	users, total, err := uh.service.GetAllUsers(ctx, params.Search, params.OrderBy, params.Sort, params.Page, params.Limit, params.IsSoftDeleted)
 
 	if err != nil {
 		utils.ResponseError(ctx, err)
@@ -42,10 +42,6 @@ func (uh *UserHandler) GetAllUsers(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, paginationResp)
 }
 
-func (uh *UserHandler) GetSoftDeletedUsers(ctx *gin.Context) {
-	utils.ResponseSuccess(ctx, http.StatusOK, "")
-}
-
 func (uh *UserHandler) GetUserByUUID(ctx *gin.Context) {
 	var params v1dto.GetUserByUUIDParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
@@ -53,7 +49,23 @@ func (uh *UserHandler) GetUserByUUID(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "")
+	userUuid, err := uuid.Parse(params.Uuid)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	user, err := uh.service.GetUserByUUID(ctx, userUuid)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	userDTO := v1dto.MapUserToDTO(user)
+
+	utils.ResponseSuccess(ctx, http.StatusOK, userDTO)
 }
 
 func (uh *UserHandler) CreateUser(ctx *gin.Context) {

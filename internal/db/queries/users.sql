@@ -48,6 +48,11 @@ WHERE
 	AND user_deleted_at IS NOT NULL
 RETURNING *;
 
+-- name: GetUser :one
+SELECT * FROM users
+WHERE user_uuid = sqlc.arg(user_uuid)::uuid
+AND user_deleted_at IS NULL;
+
 -- name: ListUsersUserIdAsc :many
 SELECT *
 FROM users
@@ -103,8 +108,11 @@ LIMIT $1 OFFSET $2;
 -- name: CountUsers :one
 SELECT count(*)
 FROM users
-WHERE user_deleted_at IS NULL
-AND (
+WHERE (
+	sqlc.narg(deleted)::bool IS NULL
+	OR (sqlc.narg(deleted)::bool = TRUE AND user_deleted_at IS NOT NULL)
+	OR (sqlc.narg(deleted)::bool = FALSE AND user_deleted_at IS NULL)
+) AND (
 	sqlc.narg(search)::TEXT IS NULL
 	OR sqlc.narg(search)::TEXT = ''
 	OR user_email ILIKE '%' || sqlc.narg(search) || '%'

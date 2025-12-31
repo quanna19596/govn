@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 type Module interface {
@@ -29,10 +30,11 @@ type Application struct {
 }
 
 type ModuleContext struct {
-	DB sqlc.Querier
+	DB    sqlc.Querier
+	Redis *redis.Client
 }
 
-func NewApplication(config *config.Config) *Application {
+func NewApplication(cfg *config.Config) *Application {
 	if err := validation.InitValidator(); err != nil {
 		log.Fatalf("Validator init failed %v", err)
 	}
@@ -44,8 +46,11 @@ func NewApplication(config *config.Config) *Application {
 		log.Fatalf("Database init failed: %v", err)
 	}
 
+	redisClient := config.NewRedisClient()
+
 	ctx := &ModuleContext{
-		DB: db.DB,
+		DB:    db.DB,
+		Redis: redisClient,
 	}
 
 	modules := []Module{
@@ -55,7 +60,7 @@ func NewApplication(config *config.Config) *Application {
 	routes.RegisterRoutes(router, getModuleRoutes(modules)...)
 
 	return &Application{
-		config:  config,
+		config:  cfg,
 		router:  router,
 		modules: modules,
 	}

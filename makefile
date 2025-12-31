@@ -49,4 +49,10 @@ migrate-goto:
 sqlc:
 	docker run --rm -v $$(pwd):/src -w /src sqlc/sqlc generate
 
-.PHONY: importdb exportdb server migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+.PHONY: importdb exportdb server migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc docker-up docker-down

@@ -6,25 +6,27 @@ import (
 	"shopify/internal/db/sqlc"
 	"shopify/internal/repository"
 	"shopify/internal/utils"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
-	repo repository.UserRepository
+	repo  repository.UserRepository
+	cache *redis.Client
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo repository.UserRepository, redisClient *redis.Client) UserService {
 	return &userService{
-		repo: repo,
+		repo:  repo,
+		cache: redisClient,
 	}
 }
 
-func (us *userService) GetAllUsers(ctx *gin.Context, search string, orderBy string, sort string, page int32, limit int32) ([]sqlc.User, int32, error) {
+func (us *userService) GetAllUsers(ctx *gin.Context, search string, orderBy string, sort string, page int32, limit int32, deleted bool) ([]sqlc.User, int32, error) {
 	context := ctx.Request.Context()
 	if sort == "" {
 		sort = "desc"
@@ -39,23 +41,18 @@ func (us *userService) GetAllUsers(ctx *gin.Context, search string, orderBy stri
 	}
 
 	if limit <= 0 {
-		envLimit := utils.GetEnv("LIMIT_ITEM_ON_PER_PAGE", "10")
-		limitInt, err := strconv.Atoi(envLimit)
-
-		if err != nil || limitInt <= 0 {
-			limitInt = 10
-		}
+		limitInt := utils.GetIntEnv("LIMIT_ITEM_ON_PER_PAGE", 10)
 		limit = int32(limitInt)
 	}
 
 	offset := (page - 1) * limit
 
-	users, err := us.repo.GetAllV2(context, search, orderBy, sort, limit, offset)
+	users, err := us.repo.GetAllV2(context, search, orderBy, sort, limit, offset, deleted)
 	if err != nil {
 		return []sqlc.User{}, 0, utils.WrapError(err, "failed to fetch users", utils.ErrCodeInternalServer)
 	}
 
-	total, err := us.repo.CountUsers(context, search)
+	total, err := us.repo.CountUsers(context, search, deleted)
 	if err != nil {
 		return []sqlc.User{}, 0, utils.WrapError(err, "failed to count users", utils.ErrCodeInternalServer)
 	}
@@ -63,7 +60,17 @@ func (us *userService) GetAllUsers(ctx *gin.Context, search string, orderBy stri
 	return users, int32(total), nil
 }
 
-func (us *userService) GetUserByUUID(uuid string) {}
+func (us *userService) GetUserByUUID(ctx *gin.Context, uuid uuid.UUID) (sqlc.User, error) {
+	context := ctx.Request.Context()
+
+	user, err := us.repo.GetByUUID(context, uuid)
+
+	if err != nil {
+		return sqlc.User{}, utils.WrapError(err, "failed to get user", utils.ErrCodeInternalServer)
+	}
+
+	return user, nil
+}
 
 func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
 	context := ctx.Request.Context()
