@@ -11,6 +11,7 @@ import (
 	"shopify/internal/db/sqlc"
 	"shopify/internal/routes"
 	"shopify/internal/validation"
+	"shopify/pkg/auth"
 	"syscall"
 	"time"
 
@@ -47,6 +48,7 @@ func NewApplication(cfg *config.Config) *Application {
 	}
 
 	redisClient := config.NewRedisClient()
+	tokenService := auth.NewJWTService()
 
 	ctx := &ModuleContext{
 		DB:    db.DB,
@@ -55,6 +57,7 @@ func NewApplication(cfg *config.Config) *Application {
 
 	modules := []Module{
 		NewUserModule(ctx),
+		NewAuthModule(ctx, tokenService),
 	}
 
 	routes.RegisterRoutes(router, getModuleRoutes(modules)...)

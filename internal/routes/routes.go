@@ -19,6 +19,7 @@ func RegisterRoutes(r *gin.Engine, routes ...Route) {
 
 	r.Use(
 		middleware.RateLimiterMiddleware(rateLimiterLogger),
+		middleware.CORSMiddleware(),
 		middleware.TraceMiddleware(),
 		middleware.LoggerMiddleware(httpLogger),
 		middleware.RecoveryMiddleware(recoveryLogger),
@@ -33,4 +34,11 @@ func RegisterRoutes(r *gin.Engine, routes ...Route) {
 	for _, route := range routes {
 		route.Register(v1Api)
 	}
+
+	r.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(404, gin.H{
+			"error": "Not found",
+			"path":  ctx.Request.URL.Path,
+		})
+	})
 }

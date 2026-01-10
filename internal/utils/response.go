@@ -13,6 +13,7 @@ const (
 	ErrCodeNotFound       ErrorCode = "NOT_FOUND"
 	ErrCodeConflict       ErrorCode = "CONFLICT"
 	ErrCodeInternalServer ErrorCode = "INTERNAL_SERVER_ERROR"
+	ErrCodeUnauthorized   ErrorCode = "UNAUTHORIZED"
 )
 
 type AppError struct {
@@ -107,6 +108,8 @@ func httpStatusFromCode(code ErrorCode) int {
 		return http.StatusConflict
 	case ErrCodeInternalServer:
 		return http.StatusInternalServerError
+	case ErrCodeUnauthorized:
+		return http.StatusUnauthorized
 	default:
 		return http.StatusInternalServerError
 	}
