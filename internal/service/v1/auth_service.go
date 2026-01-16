@@ -4,45 +4,189 @@ import (
 	"shopify/internal/repository"
 	"shopify/internal/utils"
 	"shopify/pkg/auth"
+	"shopify/pkg/cache"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/time/rate"
 )
 
 type authService struct {
 	userRepo     repository.UserRepository
 	tokenService auth.TokenService
+	cacheService cache.RedisCacheService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService) AuthService {
+type LoginAttempt struct {
+	limiter  *rate.Limiter
+	lastSeen time.Time
+}
+
+var (
+	mu              sync.Mutex
+	clients         = make(map[string]*LoginAttempt)
+	LoginAttemptTTL = 5 * time.Minute
+	MaxLoginAttempt = 5
+)
+
+func (as *authService) getClientIP(ctx *gin.Context) string {
+	ip := ctx.ClientIP()
+	if ip == "" {
+		ip = ctx.Request.RemoteAddr
+	}
+
+	return ip
+}
+
+func (as *authService) getLoginAttempt(ip string) *rate.Limiter {
+	mu.Lock()
+	defer mu.Unlock()
+
+	client, exists := clients[ip]
+	if !exists {
+		limiter := rate.NewLimiter(rate.Limit(float32(MaxLoginAttempt)/float32(LoginAttemptTTL.Seconds())), MaxLoginAttempt)
+		newClient := &LoginAttempt{limiter, time.Now()}
+		clients[ip] = newClient
+		return limiter
+	}
+
+	client.lastSeen = time.Now()
+	return client.limiter
+}
+
+func (as *authService) checkLoginAttempt(ip string) error {
+	limiter := as.getLoginAttempt(ip)
+
+	if !limiter.Allow() {
+		return utils.NewError("Too many login attempts. Please retry again later", utils.ErrCodeTooManyRequests)
+	}
+
+	return nil
+}
+
+func (as *authService) CleanupClients(ip string) {
+	mu.Lock()
+	defer mu.Unlock()
+	delete(clients, ip)
+}
+
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
+		cacheService: cacheService,
 	}
 }
 
-func (as *authService) Login(ctx *gin.Context, email string, password string) (string, int, error) {
+func (as *authService) Login(ctx *gin.Context, email string, password string) (string, string, int, error) {
 	context := ctx.Request.Context()
+	ip := as.getClientIP(ctx)
+
+	if err := as.checkLoginAttempt(ip); err != nil {
+		return "", "", 0, err
+	}
 
 	email = utils.NormalizeString(email)
 	user, err := as.userRepo.GetByEmail(context, email)
 
 	if err != nil {
-		return "", 0, utils.NewError("Invalid email or password", utils.ErrCodeUnauthorized)
+		as.getLoginAttempt(ip)
+		return "", "", 0, utils.NewError("Invalid email or password", utils.ErrCodeUnauthorized)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.UserPassword), []byte(password)); err != nil {
-		return "", 0, utils.NewError("Invalid email or password", utils.ErrCodeUnauthorized)
+		as.getLoginAttempt(ip)
+		return "", "", 0, utils.NewError("Invalid email or password", utils.ErrCodeUnauthorized)
 	}
 
 	accessToken, err := as.tokenService.GenerateAccessToken(user)
 	if err != nil {
-		return "", 0, utils.WrapError(err, "Unable to generate access token", utils.ErrCodeInternalServer)
+		return "", "", 0, utils.WrapError(err, "Unable to generate access token", utils.ErrCodeInternalServer)
 	}
 
-	return accessToken, int(auth.AccessTokenTTL.Seconds()), nil
+	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
+	if err != nil {
+		return "", "", 0, utils.WrapError(err, "Unable to generate refresh token", utils.ErrCodeInternalServer)
+	}
+
+	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+		return "", "", 0, utils.WrapError(err, "Unable to save refresh token", utils.ErrCodeInternalServer)
+	}
+
+	as.CleanupClients(ip)
+
+	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }
 
-func (as *authService) Logout(ctx *gin.Context) error {
+func (as *authService) Logout(ctx *gin.Context, refreshToken string) error {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return utils.NewError("Missing Authorization Header", utils.ErrCodeUnauthorized)
+	}
+
+	accessToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	_, claims, err := as.tokenService.ParseToken(accessToken)
+	if err != nil {
+		return utils.NewError("Invalid Access Token", utils.ErrCodeUnauthorized)
+	}
+
+	if jti, ok := claims["jti"].(string); ok {
+		expUnix, _ := claims["exp"].(float64)
+		exp := time.Unix(int64(expUnix), 0)
+		key := "blacklist:" + jti
+		ttl := time.Until(exp)
+		as.cacheService.Set(key, "revoked", ttl)
+	}
+
+	_, err = as.tokenService.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return utils.NewError("Refresh token is invalid or revoked", utils.ErrCodeUnauthorized)
+	}
+
+	if err := as.tokenService.RevokeRefreshToken(refreshToken); err != nil {
+		return utils.WrapError(err, "Unable to revoke token", utils.ErrCodeInternalServer)
+	}
+
 	return nil
+
+}
+
+func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string) (string, string, int, error) {
+	context := ctx.Request.Context()
+
+	token, err := as.tokenService.ValidateRefreshToken(refreshTokenString)
+	if err != nil {
+		return "", "", 0, utils.NewError("Refresh token is invalid or revoked", utils.ErrCodeUnauthorized)
+	}
+
+	userUuid, _ := uuid.Parse(token.UserUUID)
+	user, err := as.userRepo.GetByUUID(context, userUuid)
+	if err != nil {
+		return "", "", 0, utils.NewError("User not found", utils.ErrCodeUnauthorized)
+	}
+
+	accessToken, err := as.tokenService.GenerateAccessToken(user)
+	if err != nil {
+		return "", "", 0, utils.WrapError(err, "Unable to create access token", utils.ErrCodeInternalServer)
+	}
+
+	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
+	if err != nil {
+		return "", "", 0, utils.WrapError(err, "Unable to create access token", utils.ErrCodeInternalServer)
+	}
+
+	if err := as.tokenService.RevokeRefreshToken(refreshTokenString); err != nil {
+		return "", "", 0, utils.WrapError(err, "Unable to revoke token", utils.ErrCodeInternalServer)
+	}
+
+	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+		return "", "", 0, utils.WrapError(err, "Cannot save refresh token", utils.ErrCodeInternalServer)
+	}
+
+	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }

@@ -2,7 +2,10 @@ package routes
 
 import (
 	"shopify/internal/middleware"
+	v1routes "shopify/internal/routes/v1"
 	"shopify/internal/utils"
+	"shopify/pkg/auth"
+	"shopify/pkg/cache"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -12,11 +15,12 @@ type Route interface {
 	Register(r *gin.RouterGroup)
 }
 
-func RegisterRoutes(r *gin.Engine, routes ...Route) {
+func RegisterRoutes(r *gin.Engine, authService auth.TokenService, cacheService cache.RedisCacheService, routes ...Route) {
 	httpLogger := utils.NewLoggerWithPath("../../internal/logs/http.log", "info")
 	recoveryLogger := utils.NewLoggerWithPath("../../internal/logs/recovery.log", "warning")
 	rateLimiterLogger := utils.NewLoggerWithPath("../../internal/logs/rate_limiter.log", "warning")
 
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(
 		middleware.RateLimiterMiddleware(rateLimiterLogger),
 		middleware.CORSMiddleware(),
@@ -24,15 +28,23 @@ func RegisterRoutes(r *gin.Engine, routes ...Route) {
 		middleware.LoggerMiddleware(httpLogger),
 		middleware.RecoveryMiddleware(recoveryLogger),
 		middleware.ApiKeyMiddleware(),
-		middleware.AuthMiddleware(),
 	)
-
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	v1Api := r.Group("/api/v1")
 
+	middleware.InitAuthMiddleware(authService, cacheService)
+	protected := v1Api.Group("")
+	protected.Use(
+		middleware.AuthMiddleware(),
+	)
+
 	for _, route := range routes {
-		route.Register(v1Api)
+		switch route.(type) {
+		case *v1routes.AuthRoutes:
+			route.Register(v1Api)
+		default:
+			route.Register(protected)
+		}
 	}
 
 	r.NoRoute(func(ctx *gin.Context) {
