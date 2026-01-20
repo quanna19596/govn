@@ -1,16 +1,20 @@
 package v1service
 
 import (
+	"fmt"
+	"shopify/internal/db/sqlc"
 	"shopify/internal/repository"
 	"shopify/internal/utils"
 	"shopify/pkg/auth"
 	"shopify/pkg/cache"
+	"shopify/pkg/logger"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/time/rate"
 )
@@ -189,4 +193,78 @@ func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string)
 	}
 
 	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
+}
+
+func (as *authService) ForgotPassword(ctx *gin.Context, email string) error {
+	context := ctx.Request.Context()
+	rateLimitKey := fmt.Sprintf("reset:ratelimit:%s", email)
+
+	if exists, err := as.cacheService.Exists(rateLimitKey); err == nil && exists {
+		return utils.NewError("Please wait before requesting another password reset", utils.ErrCodeTooManyRequests)
+	}
+
+	user, err := as.userRepo.GetByEmail(context, email)
+
+	if err != nil {
+		return utils.NewError("Email not found", utils.ErrCodeNotFound)
+	}
+
+	token, err := utils.GenerateRandomString(16)
+	if err != nil {
+		return utils.NewError("Failed to generate reset password token", utils.ErrCodeInternalServer)
+	}
+
+	err = as.cacheService.Set("reset:"+token, user.UserUuid, time.Hour)
+	if err != nil {
+		return utils.NewError("Failed to store reset token", utils.ErrCodeInternalServer)
+	}
+
+	err = as.cacheService.Set(rateLimitKey, "1", 5*time.Minute)
+	if err != nil {
+		return utils.NewError("Failed to store rate limit reset password", utils.ErrCodeInternalServer)
+	}
+
+	resetLink := fmt.Sprintf("https://abcd.com/view-to-reset-password?token=%s", token)
+
+	logger.Log.Info().Msg(resetLink)
+
+	return nil
+}
+
+func (as *authService) ResetPassword(ctx *gin.Context, token string, newPassword string) error {
+	context := ctx.Request.Context()
+
+	var userUUIDStr string
+	err := as.cacheService.Get("reset:"+token, &userUUIDStr)
+	if err == redis.Nil || userUUIDStr == "" {
+		return utils.NewError("Invalid or expired token", utils.ErrCodeNotFound)
+	}
+
+	if err != nil {
+		return utils.NewError("Failed to get reset token", utils.ErrCodeInternalServer)
+	}
+
+	userUuid, err := uuid.Parse(userUUIDStr)
+	if err != nil {
+		return utils.WrapError(err, "Uuid is invalid", utils.ErrCodeInternalServer)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return utils.WrapError(err, "Failed to hash password", utils.ErrCodeInternalServer)
+	}
+
+	input := sqlc.UpdatePasswordParams{
+		UserPassword: string(hashedPassword),
+		UserUuid:     userUuid,
+	}
+
+	_, err = as.userRepo.UpdatePassword(context, input)
+	if err != nil {
+		return utils.NewError("Failed to update new password", utils.ErrCodeInternalServer)
+	}
+
+	as.cacheService.Clear("reset:" + token)
+
+	return nil
 }

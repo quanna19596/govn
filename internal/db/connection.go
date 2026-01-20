@@ -3,10 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"shopify/internal/config"
 	"shopify/internal/db/sqlc"
 	"shopify/internal/utils"
+	"shopify/pkg/logger"
 	"shopify/pkg/pgx"
 	"time"
 
@@ -25,7 +25,7 @@ func InitDB() error {
 		return fmt.Errorf("error parsing DB config: %v", err)
 	}
 
-	sqlLogger := utils.NewLoggerWithPath("../../internal/logs/sql.log", "info")
+	sqlLogger := utils.NewLoggerWithPath("sql.log", "info")
 
 	conf.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger: &pgx.PgxZerologTracer{
@@ -55,7 +55,7 @@ func InitDB() error {
 		return fmt.Errorf("db ping error: %v", err)
 	}
 
-	log.Println("🍺 Connected Database")
+	logger.Log.Info().Msg("🍺 Connected Database")
 
 	return nil
 }

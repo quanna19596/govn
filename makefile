@@ -5,6 +5,12 @@ CONN_STRING = postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_
 
 MIGRATION_DIRS = internal/db/migrations
 
+ENV_FILE=.env
+
+PROD_COMPOSE=docker-compose.prod.yml
+NOAPP_COMPOSE=docker-compose.noapp.yml
+DEV_COMPOSE=docker-compose.dev.yml
+
 # Import database
 importdb:
 	docker exec -i postgres-db psql -U root -d master-golang < ./backupdb-master-golang.sql
@@ -15,7 +21,15 @@ exportdb:
 
 # Run server
 server:
-	cd cmd/api && go run .
+	go run ./cmd/api
+
+# Build App
+build:
+	go build -o bin/myapp ./cmd/api
+
+# Run App
+run:
+	./bin/myapp
 
 # Create a new migration (make migrate-create NAME=profiles)
 migrate-create:
@@ -47,12 +61,38 @@ migrate-goto:
 
 # SQLC Generate
 sqlc:
-	docker run --rm -v $$(pwd):/src -w /src sqlc/sqlc generate
+	sqlc generate
 
-docker-up:
-	docker compose up -d
+# Build container for noapp
+local:
+	docker compose -f $(NOAPP_COMPOSE) down
+	docker compose -f $(NOAPP_COMPOSE) --env-file $(ENV_FILE) up -d --build
+	go run ./cmd/api
 
-docker-down:
-	docker compose down
+# Stop all container noapp
+stop-local:
+	docker compose -f $(NOAPP_COMPOSE) down
 
-.PHONY: importdb exportdb server migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc docker-up docker-down
+# Build container for dev
+dev:
+	docker compose -f $(DEV_COMPOSE) down
+	docker compose -f $(DEV_COMPOSE) --env-file $(ENV_FILE) up --build
+
+# Build container for production
+prod:
+	docker compose -f $(PROD_COMPOSE) down
+	docker compose -f $(PROD_COMPOSE) --env-file $(ENV_FILE) up -d --build
+
+# Stop all container production
+stop-prod:
+	docker compose -f $(PROD_COMPOSE) down
+
+# View logs container production
+logs-prod:
+	docker compose -f $(PROD_COMPOSE) logs -f --tail=100
+	
+# Go to container api
+bash:
+	docker exec -it govn-api /bin/sh
+
+.PHONY: importdb exportdb server build run migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc local stop-local dev prod stop-prod logs-prod bash

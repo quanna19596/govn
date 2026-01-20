@@ -203,3 +203,12 @@ func (ur *SqlUserRepository) GetByEmail(ctx context.Context, email string) (sqlc
 
 	return user, nil
 }
+
+func (ur *SqlUserRepository) UpdatePassword(ctx context.Context, input sqlc.UpdatePasswordParams) (sqlc.User, error) {
+	user, err := ur.DB.UpdatePassword(ctx, input)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+
+	return user, nil
+}

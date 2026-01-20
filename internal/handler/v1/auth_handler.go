@@ -1,7 +1,6 @@
 package v1handler
 
 import (
-	"log"
 	"net/http"
 	v1dto "shopify/internal/dto/v1"
 	v1service "shopify/internal/service/v1"
@@ -41,8 +40,6 @@ func (ah *AuthHandler) Login(ctx *gin.Context) {
 		ExpiresIn:    expiresIn,
 	}
 
-	log.Println(response)
-
 	utils.ResponseSuccess(ctx, http.StatusOK, response)
 }
 
@@ -79,4 +76,36 @@ func (ah *AuthHandler) RefreshToken(ctx *gin.Context) {
 	}
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Refresh token generate successfully", response)
+}
+
+func (ah *AuthHandler) ForgotPassword(ctx *gin.Context) {
+	var input v1dto.ForgotPasswordInput
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+
+	err := ah.service.ForgotPassword(ctx, input.Email)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Reset link sent to email")
+}
+
+func (ah *AuthHandler) ResetPassword(ctx *gin.Context) {
+	var input v1dto.ResetPasswordInput
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+
+	err := ah.service.ResetPassword(ctx, input.Token, input.NewPasssword)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Password reset successfully")
 }

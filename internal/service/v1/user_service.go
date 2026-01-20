@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"shopify/internal/db/sqlc"
 	"shopify/internal/repository"
 	"shopify/internal/utils"
 	"shopify/pkg/cache"
+	"shopify/pkg/logger"
 	"strings"
 	"time"
 
@@ -124,7 +124,7 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 
 	// Clear cache
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("Failed to clear cache: %v", err)
+		logger.Log.Warn().Err(err).Msg("Failed to clear cache")
 	}
 
 	return user, nil
@@ -155,7 +155,7 @@ func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams)
 
 	// Clear cache
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("Failed to clear cache: %v", err)
+		logger.Log.Warn().Err(err).Msg("Failed to clear cache")
 	}
 
 	return user, nil
@@ -175,7 +175,7 @@ func (us *userService) DeleteUser(ctx *gin.Context, uuid uuid.UUID) error {
 
 	// Clear cache
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("Failed to clear cache: %v", err)
+		logger.Log.Warn().Err(err).Msg("Failed to clear cache")
 	}
 
 	return nil
@@ -195,7 +195,7 @@ func (us *userService) SoftDeleteUser(ctx *gin.Context, uuid uuid.UUID) error {
 
 	// Clear cache
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("Failed to clear cache: %v", err)
+		logger.Log.Warn().Err(err).Msg("Failed to clear cache")
 	}
 
 	return nil
@@ -215,7 +215,7 @@ func (us *userService) RestoreUser(ctx *gin.Context, uuid uuid.UUID) (sqlc.User,
 
 	// Clear cache
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("Failed to clear cache: %v", err)
+		logger.Log.Warn().Err(err).Msg("Failed to clear cache")
 	}
 
 	return user, nil

@@ -2,8 +2,8 @@ package config
 
 import (
 	"context"
-	"log"
 	"shopify/internal/utils"
+	"shopify/pkg/logger"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -41,12 +41,10 @@ func NewRedisClient() *redis.Client {
 
 	_, err := client.Ping(ctx).Result()
 	if err != nil {
-		// logger.Log.Fatal().Err(err).Msg("Failed to connect to Redis")
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		logger.Log.Fatal().Err(err).Msg("Failed to connect to Redis")
 	}
 
-	// logger.Log.Info().Msg("🍺 Connected Redis")
-	log.Println("🍺 Connected Redis")
+	logger.Log.Info().Msg("🍺 Connected Redis")
 
 	return client
 }
