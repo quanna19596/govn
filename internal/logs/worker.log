@@ -1,0 +1,11 @@
+{"level":"info","time":"2026-01-29T03:20:40Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:21:18Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:21:23Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:22:45Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:22:52Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:23:38Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:23:42Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:33:53Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:34:51Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:35:01Z","message":"Worker started, consuming from queue: auth_email_queue"}
+{"level":"info","time":"2026-01-29T03:46:22Z","message":"Worker started, consuming from queue: auth_email_queue"}

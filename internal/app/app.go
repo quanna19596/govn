@@ -9,10 +9,13 @@ import (
 	"shopify/internal/db"
 	"shopify/internal/db/sqlc"
 	"shopify/internal/routes"
+	"shopify/internal/utils"
 	"shopify/internal/validation"
 	"shopify/pkg/auth"
 	"shopify/pkg/cache"
 	"shopify/pkg/logger"
+	"shopify/pkg/mail"
+	"shopify/pkg/rabbitmq"
 	"syscall"
 	"time"
 
@@ -35,20 +38,41 @@ type ModuleContext struct {
 	Redis *redis.Client
 }
 
-func NewApplication(cfg *config.Config) *Application {
+func NewApplication(cfg *config.Config) (*Application, error) {
 	if err := validation.InitValidator(); err != nil {
 		logger.Log.Fatal().Err(err).Msg("Validator init failed")
+		return nil, err
 	}
 
 	router := gin.Default()
 
 	if err := db.InitDB(); err != nil {
 		logger.Log.Fatal().Err(err).Msg("Database init failed")
+		return nil, err
 	}
 
 	redisClient := config.NewRedisClient()
 	cacheRedisService := cache.NewRedisCacheService(redisClient)
 	tokenService := auth.NewJWTService(cacheRedisService)
+	mailLogger := utils.NewLoggerWithPath("mail.log", "info")
+	factory, err := mail.NewProviderFactory(mail.ProviderMailtrap)
+
+	if err != nil {
+		mailLogger.Error().Err(err).Msg("Failed to create mail provider factory")
+		return nil, err
+	}
+
+	mailService, err := mail.NewMailService(cfg, mailLogger, factory)
+
+	if err != nil {
+		mailLogger.Error().Err(err).Msg("Failed to initialize mail service")
+		return nil, err
+	}
+
+	rabbitmqLogger := utils.NewLoggerWithPath("worker.log", "info")
+	rabbitmqService, _ := rabbitmq.NewRabbitMQService(
+		utils.GetEnv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"), rabbitmqLogger,
+	)
 
 	ctx := &ModuleContext{
 		DB:    db.DB,
@@ -57,7 +81,7 @@ func NewApplication(cfg *config.Config) *Application {
 
 	modules := []Module{
 		NewUserModule(ctx),
-		NewAuthModule(ctx, tokenService, cacheRedisService),
+		NewAuthModule(ctx, tokenService, cacheRedisService, mailService, rabbitmqService),
 	}
 
 	routes.RegisterRoutes(router, tokenService, cacheRedisService, getModuleRoutes(modules)...)
@@ -66,7 +90,7 @@ func NewApplication(cfg *config.Config) *Application {
 		config:  cfg,
 		router:  router,
 		modules: modules,
-	}
+	}, nil
 }
 
 func (a *Application) Run() error {

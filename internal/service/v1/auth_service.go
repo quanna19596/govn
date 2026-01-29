@@ -8,6 +8,8 @@ import (
 	"shopify/pkg/auth"
 	"shopify/pkg/cache"
 	"shopify/pkg/logger"
+	"shopify/pkg/mail"
+	"shopify/pkg/rabbitmq"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +25,8 @@ type authService struct {
 	userRepo     repository.UserRepository
 	tokenService auth.TokenService
 	cacheService cache.RedisCacheService
+	mailService  mail.EmailProviderService
+	rabbitmq     rabbitmq.RabbitMQService
 }
 
 type LoginAttempt struct {
@@ -78,11 +82,13 @@ func (as *authService) CleanupClients(ip string) {
 	delete(clients, ip)
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService) AuthService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService, rabbitmqService rabbitmq.RabbitMQService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
 		cacheService: cacheService,
+		mailService:  mailService,
+		rabbitmq:     rabbitmqService,
 	}
 }
 
@@ -227,6 +233,24 @@ func (as *authService) ForgotPassword(ctx *gin.Context, email string) error {
 	resetLink := fmt.Sprintf("https://abcd.com/view-to-reset-password?token=%s", token)
 
 	logger.Log.Info().Msg(resetLink)
+
+	mailContent := &mail.Email{
+		To: []mail.Address{
+			{Email: email},
+		},
+		Subject: "Password Reset Request",
+		Text: fmt.Sprintf("Hi %s, \n\n You requested to reset your password. Please click the link below to reset it:\n%s\n\n The link will expire in 1 hour. \n\n Best regard, \nCode With Tuan Team",
+			user.UserEmail,
+			resetLink),
+	}
+
+	if err := as.rabbitmq.Publish(ctx, "auth_email_queue", mailContent); err != nil {
+		return utils.NewError("Failed to send password reset email", utils.ErrCodeInternalServer)
+	}
+
+	// if err := as.mailService.SendEmail(context, mailContent); err != nil {
+	// 	return utils.NewError("Failed to send passwod reset email", utils.ErrCodeInternalServer)
+	// }
 
 	return nil
 }

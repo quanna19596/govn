@@ -28,10 +28,14 @@ func main() {
 	loadEnv(filepath.Join(rootDir, ".env"))
 
 	config := config.NewConfig()
-	application := app.NewApplication(config)
+	application, err := app.NewApplication(config)
+
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("Failed to initialize application")
+	}
 
 	if err := application.Run(); err != nil {
-		panic(err)
+		logger.Log.Fatal().Err(err).Msg("Application run failed")
 	}
 }
 

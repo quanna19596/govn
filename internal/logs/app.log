@@ -1,0 +1,104 @@
+{"level":"info","time":"2026-01-22T07:36:43Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"fatal","error":"db ping error: failed to connect to `user=root database=govn`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused","time":"2026-01-22T07:36:43Z","message":"Database init failed"}
+{"level":"info","time":"2026-01-22T07:37:01Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"fatal","error":"db ping error: failed to connect to `user=root database=govn`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused","time":"2026-01-22T07:37:01Z","message":"Database init failed"}
+{"level":"info","time":"2026-01-22T07:38:11Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:38:11Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:38:11Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:38:11Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:41:41Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:41:41Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:41:41Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:41:41Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:41:46Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:41:46Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:41:46Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:41:46Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:42:29Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:42:29Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:42:29Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:42:29Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:43:55Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:43:55Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:43:55Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:43:55Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:45:43Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:45:44Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:45:44Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:45:44Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:46:31Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:46:31Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:46:31Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:46:31Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:46:39Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:46:39Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:46:39Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:46:39Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:47:14Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:47:14Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:47:14Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:47:14Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:48:11Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:48:11Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:48:11Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:48:11Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:48:52Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:48:52Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:48:52Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:48:52Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:49:01Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:49:01Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:49:01Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:49:01Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:55:37Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:55:37Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:55:37Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:55:37Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-22T07:57:26Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-22T07:57:26Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-22T07:57:26Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-22T07:57:26Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:20:41Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:20:41Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:20:41Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:20:41Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:21:18Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:21:18Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:21:18Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:21:18Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:21:23Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:21:23Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:21:23Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:21:23Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:22:45Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:22:45Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:22:45Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:22:45Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:22:52Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:22:52Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:22:52Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:22:52Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:23:38Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:23:38Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:23:38Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:23:38Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:23:45Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:23:45Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:23:45Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:23:45Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:33:53Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:33:53Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:33:53Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:33:53Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:34:51Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:34:51Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:34:51Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:34:51Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:35:01Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:35:01Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:35:01Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:35:01Z","message":"Server is running on :8080..."}
+{"level":"info","time":"2026-01-29T03:46:14Z","message":"✅ Loaded successfully .env in api proccess"}
+{"level":"info","time":"2026-01-29T03:46:14Z","message":"🍺 Connected Database"}
+{"level":"info","time":"2026-01-29T03:46:15Z","message":"🍺 Connected Redis"}
+{"level":"info","time":"2026-01-29T03:46:15Z","message":"Server is running on :8080..."}

@@ -8,15 +8,17 @@ import (
 	v1service "shopify/internal/service/v1"
 	"shopify/pkg/auth"
 	"shopify/pkg/cache"
+	"shopify/pkg/mail"
+	"shopify/pkg/rabbitmq"
 )
 
 type AuthModule struct {
 	routes routes.Route
 }
 
-func NewAuthModule(ctx *ModuleContext, tokenService auth.TokenService, cacheService cache.RedisCacheService) *AuthModule {
+func NewAuthModule(ctx *ModuleContext, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService, rabbitmqService rabbitmq.RabbitMQService) *AuthModule {
 	repo := repository.NewSqlUserRepository(ctx.DB)
-	service := v1service.NewAuthService(repo, tokenService, cacheService)
+	service := v1service.NewAuthService(repo, tokenService, cacheService, mailService, rabbitmqService)
 	handler := v1handler.NewAuthHandler(service)
 	routes := v1routes.NewAuthRoutes(handler)
 
